@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8" />
+        <title>All Time Free Time - Python</title>
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/main.css" />
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="http://localhost:8000/">All Time Free Time </a></h1>
+                <nav><ul>
+                    <li><a href="http://localhost:8000/about/">About</a></li>
+                    <li><a href="http://localhost:8000/category/c/">C</a></li>
+                    <li><a href="http://localhost:8000/category/japan/">japan</a></li>
+                    <li class="active"><a href="http://localhost:8000/category/python/">Python</a></li>
+                    <li><a href="http://localhost:8000/category/uncategorized/">Uncategorized</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+
+            <aside id="featured" class="body">
+                <article>
+                    <h1 class="entry-title"><a href="http://localhost:8000/2018/06/06/map-a-point-on-a-road/">Map a point on a road with Python and Numpy</a></h1>
+<footer class="post-info">
+        <abbr class="published" title="2018-06-06T16:01:00+02:00">
+                Published: Wed 06 June 2018
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="http://localhost:8000/author/frank/">frank</a>
+        </address>
+<p>In <a href="http://localhost:8000/category/python/">Python</a>.</p>
+<p>tags: <a href="http://localhost:8000/tag/numpy/">Numpy</a> <a href="http://localhost:8000/tag/python/">Python</a> </p>
+</footer><!-- /.post-info --><p>I regularly work with GPS trajectories, and part of this is figuring out to which roads these points belong. The roads I work with consist of multiple nodes that together form a line. My GPS coordinates are never precisely on the road, and even though I do know to which road they belong, I still need to know where on that road.</p>
+<p><img alt="" class="size-full wp-image-631" height="166" src="http://localhost:8000/wp-content/uploads/2018/06/Capture.png" width="581"></p>
+<p><em>This point is close to a road consisting of multiple line elements</em></p>
+<p>The easiest way to do this is to... just not do it at all and just take the first node of the road. A better approach is to calculate the distance to each node and find the closest node, but that's still not accurate. We want to find the point on the road that is closest to our point of interest. Luckily this is easy to do in Python. You could do it with a for-loop, but using Numpy means this also works fast for roads with a lot of nodes.</p>
+<p>To discuss this problem consider the following simplified example, in which there are four lines with five nodes and a single point:</p>
+<p><img alt="" class="alignnone size-full wp-image-617" height="412" src="http://localhost:8000/wp-content/uploads/2018/06/Capture-2.png" width="545"></p>
+<p>Instead of latitude/longitude values, I'm just using dimensionless integers here. I store the coordinates of the line nodes in Numpy arrays and the coordinates of the point as simple integers.</p>
+<div class="highlight"><pre><span></span><span class="n">n</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="n">xp</span><span class="p">,</span> <span class="n">yp</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span>
+</pre></div>
+
+
+<p>Now I calculate for each line the location of the point on it closest to our point of interest.</p>
+<div class="highlight"><pre><span></span><span class="c1"># Calculate the difference in x and y between start and end of the lines</span>
+<span class="n">dxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span>
+<span class="n">dys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span>
+<span class="c1"># Calculate the ratios of the point compared to the line lengths</span>
+<span class="n">ratios</span> <span class="o">=</span> <span class="p">((</span><span class="n">xp</span> <span class="o">-</span> <span class="n">xs</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">dxs</span>
+<span class="o">+</span> <span class="p">(</span><span class="n">yp</span> <span class="o">-</span> <span class="n">ys</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">dys</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">dxs</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">dys</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+<span class="c1"># Remove NaN&#39;s caused by dividing by zero</span>
+<span class="n">ratios</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">ratios</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="c1"># The lines are finite, so limit the ratios between 0 and 1</span>
+<span class="n">ratios</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">ratios</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="c1"># The candidates for each line are the start of the line</span>
+<span class="c1"># plus the ratio times difference between start and end.</span>
+<span class="n">x_cands</span> <span class="o">=</span> <span class="n">xs</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">ratios</span> <span class="o">*</span> <span class="n">dxs</span>
+<span class="n">y_cands</span> <span class="o">=</span> <span class="n">ys</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">ratios</span> <span class="o">*</span> <span class="n">dys</span>
+</pre></div>
+
+
+<p>We have four lines, so also four candidate points. By calculating the distance from each point to our point of interest, we can determine which point is the closest.</p>
+<div class="highlight"><pre><span></span><span class="c1"># Find the closest candidate by minimizing the distance</span>
+<span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x_cands</span> <span class="o">-</span> <span class="n">xp</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">y_cands</span> <span class="o">-</span> <span class="n">yp</span><span class="p">))</span>
+<span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">x_cands</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">y_cands</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+</pre></div>
+
+
+<p>So it turns out our point is closest to the line <code>[(6, 4), (-1, 2)]</code>. If you look in the picture you can see that the green line indicating the distance is perpendicular to the original blue line, as you would expect.</p>
+<p><img alt="" class="alignnone size-full wp-image-623" height="418" src="http://localhost:8000/wp-content/uploads/2018/06/Capture-1.png" width="547"></p>
+<p>The cool thing is that because we're using Numpy, this also works reasonably fast for larger numbers of lines.</p>
+<p><img alt="" class="alignnone size-full wp-image-627" height="421" src="http://localhost:8000/wp-content/uploads/2018/06/Capture-3.png" width="574"></p>                </article>
+            </aside><!-- /#featured -->
+                <section id="content" class="body">
+                    <h1>Other articles</h1>
+                    <hr />
+                    <ol id="posts-list" class="hfeed">
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="http://localhost:8000/2017/08/29/matrix-inversion/" rel="bookmark"
+                           title="Permalink to Matrix inversion">Matrix inversion</a></h1>
+                </header>
+
+                <div class="entry-content">
+<footer class="post-info">
+        <abbr class="published" title="2017-08-29T18:15:00+02:00">
+                Published: Tue 29 August 2017
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="http://localhost:8000/author/frank/">frank</a>
+        </address>
+<p>In <a href="http://localhost:8000/category/python/">Python</a>.</p>
+<p>tags: <a href="http://localhost:8000/tag/matrix/">matrix</a> <a href="http://localhost:8000/tag/matrix-inversion/">matrix inversion</a> <a href="http://localhost:8000/tag/numpy/">Numpy</a> <a href="http://localhost:8000/tag/optimization/">optimization</a> <a href="http://localhost:8000/tag/python/">Python</a> </p>
+</footer><!-- /.post-info -->                <p>In one of our dynamic models there is an iterative step where a matrix needs to be inverted.
+Now matrix inversions can be tricky, so you shouldn't use them without care. If your matrix is not
+invertible, in many cases you can still apply the inverse but end up with …</p>
+                <a class="readmore" href="http://localhost:8000/2017/08/29/matrix-inversion/">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="http://localhost:8000/2017/08/23/numpy-datetime-format/" rel="bookmark"
+                           title="Permalink to Numpy datetime format">Numpy datetime format</a></h1>
+                </header>
+
+                <div class="entry-content">
+<footer class="post-info">
+        <abbr class="published" title="2017-08-23T18:29:00+02:00">
+                Published: Wed 23 August 2017
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="http://localhost:8000/author/frank/">frank</a>
+        </address>
+<p>In <a href="http://localhost:8000/category/python/">Python</a>.</p>
+<p>tags: <a href="http://localhost:8000/tag/datetime/">datetime</a> <a href="http://localhost:8000/tag/numpy/">Numpy</a> <a href="http://localhost:8000/tag/python/">Python</a> </p>
+</footer><!-- /.post-info -->                <p>Python has a lot of ways to handle dates and times. This landscape of modules can be very messy 
+for new users. Which format to use? What methods are suitable? It took me a while to figure out what
+ways were most convenient. To keep it simple I almost exclusively …</p>
+                <a class="readmore" href="http://localhost:8000/2017/08/23/numpy-datetime-format/">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="http://localhost:8000/2017/07/31/vectorizing-old-code-and-measuring-speed/" rel="bookmark"
+                           title="Permalink to Vectorizing old code and measuring speed">Vectorizing old code and measuring speed</a></h1>
+                </header>
+
+                <div class="entry-content">
+<footer class="post-info">
+        <abbr class="published" title="2017-07-31T18:15:00+02:00">
+                Published: Mon 31 July 2017
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="http://localhost:8000/author/frank/">frank</a>
+        </address>
+<p>In <a href="http://localhost:8000/category/python/">Python</a>.</p>
+<p>tags: <a href="http://localhost:8000/tag/numpy/">Numpy</a> <a href="http://localhost:8000/tag/optimization/">optimization</a> <a href="http://localhost:8000/tag/python/">Python</a> </p>
+</footer><!-- /.post-info -->                <p>I just finished refactoring a piece of code that was not so well written. We make use of Numpy arrays to store our timeseries. This particular piece of code didn't use native Numpy methods, but instead used a for-loop to iterate over every timestep in the array. This part also …</p>
+                <a class="readmore" href="http://localhost:8000/2017/07/31/vectorizing-old-code-and-measuring-speed/">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
+                </ol><!-- /#posts-list -->
+                </section><!-- /#content -->
+        <section id="extras" class="body">
+        </section><!-- /#extras -->
+
+        <!--<footer id="contentinfo" class="body">-->
+                <!--<address id="about" class="vcard body">-->
+                <!--Proudly powered by <a href="http://getpelican.com/">Pelican</a>, which takes great advantage of <a href="http://python.org">Python</a>.-->
+                <!--</address>&lt;!&ndash; /#about &ndash;&gt;-->
+
+                <!--<p>The theme is by <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>-->
+        <!--</footer>&lt;!&ndash; /#contentinfo &ndash;&gt;-->
+
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8" />
+        <title>All Time Free Time - C</title>
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/main.css" />
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="http://localhost:8000/">All Time Free Time </a></h1>
+                <nav><ul>
+                    <li><a href="http://localhost:8000/about/">About</a></li>
+                    <li class="active"><a href="http://localhost:8000/category/c/">C</a></li>
+                    <li><a href="http://localhost:8000/category/japan/">japan</a></li>
+                    <li><a href="http://localhost:8000/category/python/">Python</a></li>
+                    <li><a href="http://localhost:8000/category/uncategorized/">Uncategorized</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+
+            <aside id="featured" class="body">
+                <article>
+                    <h1 class="entry-title"><a href="http://localhost:8000/2017/10/17/simple-c-code-to-show-size-of-types/">Simple C code to show size of types</a></h1>
+<footer class="post-info">
+        <abbr class="published" title="2017-10-17T10:41:00+02:00">
+                Published: Tue 17 October 2017
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="http://localhost:8000/author/frank/">frank</a>
+        </address>
+<p>In <a href="http://localhost:8000/category/c/">C</a>.</p>
+
+</footer><!-- /.post-info --><p>Learning to code in C after working in Python for a while means slowly uncovering the intricate mechanics underlying the smooth Python experience. One of my first attempts to write a simple script to collect sensor data promptly crashed, and unlike Python you don't get exception messages. I was able to find out it had returned exit code 139, but that didn't really help much. I quickly learned not to rely on convenient exception messages like in Python, but to really understand the variables and control flows I was calling into existence.</p>
+<p>One of the first scripts I used was to show how the variable types in C differ on different systems. It's a good reminder of the basic level of C and handy to have lying around. It learned me that on a Raspberry Pi an <code>int</code> and a <code>long</code> have the same size.</p>
+<div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;limits.h&gt;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;float.h&gt;</span><span class="cp"></span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;size of char: %d </span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">char</span><span class="p">));</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;number of bits in char: %d </span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="n">CHAR_BIT</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;min value of regular char: %d </span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="n">CHAR_MIN</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;max value of regular char: %d </span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="n">CHAR_MAX</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;size of int: %d </span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">));</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;min value of int: %d </span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="n">INT_MIN</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;max value of int: %d </span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="n">INT_MAX</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;max value of unsigned int: %u </span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="n">UINT_MAX</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;size of long: %d </span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">long</span><span class="p">));</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;min value of long: %d </span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="n">LONG_MIN</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;max value of long: %d </span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="n">LONG_MAX</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;max value of unsigned long: %u </span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="n">ULONG_MAX</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;size of long long: %d </span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">long</span> <span class="kt">long</span><span class="p">));</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;min value of long long: %d </span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="n">LLONG_MIN</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;max value of long long: %d </span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="n">LLONG_MAX</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;max value of unsigned long long: %u </span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="n">ULLONG_MAX</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;size of float: %d </span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">float</span><span class="p">));</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;The maximum value of float = %.10e</span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="n">FLT_MAX</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;The minimum value of float = %.10e</span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="n">FLT_MIN</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;The number of digits in the number = %.10e</span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="n">FLT_MANT_DIG</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;size of double: %d </span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">));</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;The minimum value of double = %.10e</span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="n">DBL_MIN</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;The maximum value of double = %.10e</span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="n">DBL_MAX</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;The number of digits in the number = %.10e</span><span class="se">\\</span><span class="s">n&quot;</span><span class="p">,</span> <span class="n">DBL_MANT_DIG</span><span class="p">);</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>                </article>
+            </aside><!-- /#featured -->
+                <section id="content" class="body">
+                    <h1>Other articles</h1>
+                    <hr />
+                    <ol id="posts-list" class="hfeed">
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="http://localhost:8000/2017/10/13/my-first-makefile/" rel="bookmark"
+                           title="Permalink to My first makefile">My first makefile</a></h1>
+                </header>
+
+                <div class="entry-content">
+<footer class="post-info">
+        <abbr class="published" title="2017-10-13T16:06:00+02:00">
+                Published: Fri 13 October 2017
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="http://localhost:8000/author/frank/">frank</a>
+        </address>
+<p>In <a href="http://localhost:8000/category/c/">C</a>.</p>
+
+</footer><!-- /.post-info -->                <p>When I started with C I compiled my code by calling <code>g++</code> on the command line. This worked well so I didn't bother to look if there were better ways. Until now.</p>
+<p>A makefile is a simple text file that makes compiling much easier. In it you write where the …</p>
+                <a class="readmore" href="http://localhost:8000/2017/10/13/my-first-makefile/">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
+                </ol><!-- /#posts-list -->
+                </section><!-- /#content -->
+        <section id="extras" class="body">
+        </section><!-- /#extras -->
+
+        <!--<footer id="contentinfo" class="body">-->
+                <!--<address id="about" class="vcard body">-->
+                <!--Proudly powered by <a href="http://getpelican.com/">Pelican</a>, which takes great advantage of <a href="http://python.org">Python</a>.-->
+                <!--</address>&lt;!&ndash; /#about &ndash;&gt;-->
+
+                <!--<p>The theme is by <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>-->
+        <!--</footer>&lt;!&ndash; /#contentinfo &ndash;&gt;-->
+
+</body>
+</html>

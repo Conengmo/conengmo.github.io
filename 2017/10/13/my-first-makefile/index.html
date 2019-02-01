@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8" />
+        <title>My first makefile</title>
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/main.css" />
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="http://localhost:8000/">All Time Free Time </a></h1>
+                <nav><ul>
+                    <li><a href="http://localhost:8000/about/">About</a></li>
+                    <li class="active"><a href="http://localhost:8000/category/c/">C</a></li>
+                    <li><a href="http://localhost:8000/category/japan/">japan</a></li>
+                    <li><a href="http://localhost:8000/category/python/">Python</a></li>
+                    <li><a href="http://localhost:8000/category/uncategorized/">Uncategorized</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="http://localhost:8000/2017/10/13/my-first-makefile/" rel="bookmark"
+           title="Permalink to My first makefile">My first makefile</a></h1>
+    </header>
+
+    <div class="entry-content">
+<footer class="post-info">
+        <abbr class="published" title="2017-10-13T16:06:00+02:00">
+                Published: Fri 13 October 2017
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="http://localhost:8000/author/frank/">frank</a>
+        </address>
+<p>In <a href="http://localhost:8000/category/c/">C</a>.</p>
+
+</footer><!-- /.post-info -->      <p>When I started with C I compiled my code by calling <code>g++</code> on the command line. This worked well so I didn't bother to look if there were better ways. Until now.</p>
+<p>A makefile is a simple text file that makes compiling much easier. In it you write where the files are you want to compile, which libraries you want to use, and where to put the compiled files. Then it's as simple as calling <code>make</code> on the command line. I wish I learned this earlier!</p>
+<p>I'll take you through my first makefile. I have the sources in the same folder as the makefile, additional <code>.cpp</code> resources in <code>./lib</code> and their <code>.h</code> headers in <code>./inc</code>. When calling <code>make</code> it compiles all files, or you can specify the file like for example <code>make run</code>.</p>
+<div class="highlight"><pre><span></span># This file is plain text and just called &#39;makefile&#39; without extension.
+# First we declare some simple text substitution macros.
+# Use the g++ compiler
+CC := g++
+# Use the c++11 standard and include the headers in the inc folder.
+CFLAGS := -std=c++11 -I ./inc
+# Find the additional source files:
+# call a shell script that indexes all *.cpp files in the lib folder.
+SOURCES := $(shell find ./lib -name &#39;*.cpp&#39;)
+# bin is the output folder
+OUT_DIR := ./bin
+
+# If you call &#39;make&#39;, it ends up here.
+# I list here all available commands, so they all compile.
+all: run test_sensor
+
+# If you call &#39;make run&#39;, it ends up here.
+# The second line contains the commands as if called on the command line.
+# Notice that macros are called with $(MACRO_NAME).
+# The line must start with a TAB! The &#39;@&#39; suppresses printing the command.
+run: run.cpp
+    @$(CC) -o $(OUT_DIR)/run run.cpp $(SOURCES) $(CFLAGS)
+
+test_sensor: test_sensor.cpp
+    @$(CC) -o $(OUT_DIR)/test_sensor test_sensor.cpp $(SOURCES) $(CFLAGS)
+</pre></div>
+    </div><!-- /.entry-content -->
+
+  </article>
+</section>
+        <section id="extras" class="body">
+        </section><!-- /#extras -->
+
+        <!--<footer id="contentinfo" class="body">-->
+                <!--<address id="about" class="vcard body">-->
+                <!--Proudly powered by <a href="http://getpelican.com/">Pelican</a>, which takes great advantage of <a href="http://python.org">Python</a>.-->
+                <!--</address>&lt;!&ndash; /#about &ndash;&gt;-->
+
+                <!--<p>The theme is by <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>-->
+        <!--</footer>&lt;!&ndash; /#contentinfo &ndash;&gt;-->
+
+</body>
+</html>

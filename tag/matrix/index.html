@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8" />
+        <title>All Time Free Time - matrix</title>
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/main.css" />
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="http://localhost:8000/">All Time Free Time </a></h1>
+                <nav><ul>
+                    <li><a href="http://localhost:8000/about/">About</a></li>
+                    <li><a href="http://localhost:8000/category/c/">C</a></li>
+                    <li><a href="http://localhost:8000/category/japan/">japan</a></li>
+                    <li><a href="http://localhost:8000/category/python/">Python</a></li>
+                    <li><a href="http://localhost:8000/category/uncategorized/">Uncategorized</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+
+            <aside id="featured" class="body">
+                <article>
+                    <h1 class="entry-title"><a href="http://localhost:8000/2017/08/29/matrix-inversion/">Matrix inversion</a></h1>
+<footer class="post-info">
+        <abbr class="published" title="2017-08-29T18:15:00+02:00">
+                Published: Tue 29 August 2017
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="http://localhost:8000/author/frank/">frank</a>
+        </address>
+<p>In <a href="http://localhost:8000/category/python/">Python</a>.</p>
+<p>tags: <a href="http://localhost:8000/tag/matrix/">matrix</a> <a href="http://localhost:8000/tag/matrix-inversion/">matrix inversion</a> <a href="http://localhost:8000/tag/numpy/">Numpy</a> <a href="http://localhost:8000/tag/optimization/">optimization</a> <a href="http://localhost:8000/tag/python/">Python</a> </p>
+</footer><!-- /.post-info --><p>In one of our dynamic models there is an iterative step where a matrix needs to be inverted.
+Now matrix inversions can be tricky, so you shouldn't use them without care. If your matrix is not
+invertible, in many cases you can still apply the inverse but end up with bogus output. That's why
+we check the output of each inverse to see if it makes sense. For example by checking if the product
+of the matrix and its inverse results in an identity matrix:</p>
+<div class="highlight"><pre><span></span><span class="n">n</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="n">a_inv</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">a_inv</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mf">1e-10</span><span class="p">)</span>
+</pre></div>
+
+
+<p>If your matrix is not invertible, you can still apply a pseudo-inverse, though I'm not sure about
+its usefulness. In our case our matrices are invertible, so we don't use the pseudo-inverse. If you
+want to read more about its implementation, here is a good resource for which function to use in
+which case:
+http://vene.ro/blog/inverses-pseudoinverses-numerical-issues-speed-symmetry.html</p>
+<ul>
+<li>If you are 100% sure that your matrix is invertible, use inv for a huge speed gain.
+  The implementation of inv from Scipy is based on LAPACK’s <em>getrf + </em>getri, known to have good 
+  bounds.</li>
+<li>If you are trying to solve a tall or wide system, use pinv.</li>
+<li>If your matrix is square but might be rank deficient, use pinv2 for speed and numerical gain.</li>
+</ul>
+<p>In our case we use the regular inverse. There is an implementation in Numpy as well as in Scipy.
+Which one to use? In my test cases they delivered the same output. So I'm comparing for speed.
+For example this trial in a Jupyter notebook:</p>
+<div class="highlight"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="o">%</span><span class="n">timeit</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="mi">100</span> <span class="n">loops</span><span class="p">,</span> <span class="n">best</span> <span class="n">of</span> <span class="mi">3</span><span class="p">:</span> <span class="mf">97.9</span> <span class="n">ms</span> <span class="n">per</span> <span class="n">loop</span>
+<span class="o">&gt;&gt;&gt;</span>  <span class="o">%</span><span class="n">timeit</span> <span class="n">scipy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="mi">100</span> <span class="n">loops</span><span class="p">,</span> <span class="n">best</span> <span class="n">of</span> <span class="mi">3</span><span class="p">:</span> <span class="mf">62.9</span> <span class="n">ms</span> <span class="n">per</span> <span class="n">loop</span>
+</pre></div>
+
+
+<p>This indicates the Scipy implementation is more efficient. But wait, this is for a matrix of 1000
+x 1000. In our model the matrix is much smaller. Let's try that again with a matrix from our model:</p>
+<div class="highlight"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="o">%</span><span class="n">timeit</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="mi">100000</span> <span class="n">loops</span><span class="p">,</span> <span class="n">best</span> <span class="n">of</span> <span class="mi">3</span><span class="p">:</span> <span class="mf">18.3</span> <span class="err">µ</span><span class="n">s</span> <span class="n">per</span> <span class="n">loop</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="o">%</span><span class="n">timeit</span> <span class="n">scipy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="mi">10000</span> <span class="n">loops</span><span class="p">,</span> <span class="n">best</span> <span class="n">of</span> <span class="mi">3</span><span class="p">:</span> <span class="mf">73.6</span> <span class="err">µ</span><span class="n">s</span> <span class="n">per</span> <span class="n">loop</span>
+</pre></div>
+
+
+<p>Here the Numpy version is way faster. I don't know what's causing this difference, but the
+break-even point lies in my test case at around <code>n = 150</code>.</p>
+<p>Next up is getting this matrix inversion more efficient in Cython. It will be interesting to try to
+access the underlying heavy-lifting functions
+<a href="https://docs.scipy.org/doc/scipy/reference/linalg.cython_lapack.html">directly</a>.
+For example like described
+<a href="https://stackoverflow.com/questions/31994879/improving-cython-lapack-performance-with-internal-array-definitions">here</a>.</p>                </article>
+            </aside><!-- /#featured -->
+        <section id="extras" class="body">
+        </section><!-- /#extras -->
+
+        <!--<footer id="contentinfo" class="body">-->
+                <!--<address id="about" class="vcard body">-->
+                <!--Proudly powered by <a href="http://getpelican.com/">Pelican</a>, which takes great advantage of <a href="http://python.org">Python</a>.-->
+                <!--</address>&lt;!&ndash; /#about &ndash;&gt;-->
+
+                <!--<p>The theme is by <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>-->
+        <!--</footer>&lt;!&ndash; /#contentinfo &ndash;&gt;-->
+
+</body>
+</html>

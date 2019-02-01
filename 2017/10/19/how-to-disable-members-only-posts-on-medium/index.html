@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8" />
+        <title>How to disable members-only posts on Medium</title>
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/main.css" />
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="http://localhost:8000/">All Time Free Time </a></h1>
+                <nav><ul>
+                    <li><a href="http://localhost:8000/about/">About</a></li>
+                    <li><a href="http://localhost:8000/category/c/">C</a></li>
+                    <li><a href="http://localhost:8000/category/japan/">japan</a></li>
+                    <li><a href="http://localhost:8000/category/python/">Python</a></li>
+                    <li class="active"><a href="http://localhost:8000/category/uncategorized/">Uncategorized</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="http://localhost:8000/2017/10/19/how-to-disable-members-only-posts-on-medium/" rel="bookmark"
+           title="Permalink to How to disable members-only posts on Medium">How to disable members-only posts on Medium</a></h1>
+    </header>
+
+    <div class="entry-content">
+<footer class="post-info">
+        <abbr class="published" title="2017-10-19T12:26:00+02:00">
+                Published: Thu 19 October 2017
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="http://localhost:8000/author/frank/">frank</a>
+        </address>
+<p>In <a href="http://localhost:8000/category/uncategorized/">Uncategorized</a>.</p>
+
+</footer><!-- /.post-info -->      <p>I really like <a href="https://medium.com/">Medium</a>, it's a beautiful website with lots of interesting pieces to read. But I don't get that it raised 132 million dollars in VC funding. That's a big pile of money, that the VCs expect to earn back eightfold in a couple of years. This raises concern that Medium will have to milk every penny out of their website, inevitably decreasing the user experience. Read more about this on <a href="https://m.signalvnoise.com/venture-capital-is-going-to-murder-medium-656cbccf4829">Signal v. Noise</a>.</p>
+<p>Medium recently introduced a <a href="https://medium.com/upgrade">paid membership</a> for \$ 5 per month. Now I'm not complaining about this, actually I think it's a nice model. It works well with for example <a href="https://mondaynote.com/de-correspondent-and-the-blueprint-for-a-successful-membership-model-3660eba337ba">De Correspondent</a>. But what is annoying is that the members-only posts are mixed in with the free posts, effectively making the frontpage a minefield for non-paying users such as myself.</p>
+<p>Luckily there are two fixes. The first is to get a paid membership. The second involves a custom filter in your adblocking program. Here are the lines you need to add:</p>
+<p><code>medium.com##.js-trackedPost:if(span.svgIcon--star)</code></p>
+    </div><!-- /.entry-content -->
+
+  </article>
+</section>
+        <section id="extras" class="body">
+        </section><!-- /#extras -->
+
+        <!--<footer id="contentinfo" class="body">-->
+                <!--<address id="about" class="vcard body">-->
+                <!--Proudly powered by <a href="http://getpelican.com/">Pelican</a>, which takes great advantage of <a href="http://python.org">Python</a>.-->
+                <!--</address>&lt;!&ndash; /#about &ndash;&gt;-->
+
+                <!--<p>The theme is by <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>-->
+        <!--</footer>&lt;!&ndash; /#contentinfo &ndash;&gt;-->
+
+</body>
+</html>

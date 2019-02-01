@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="utf-8" />
+        <title>Numpy datetime format</title>
+        <link rel="stylesheet" href="http://localhost:8000/theme/css/main.css" />
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="http://localhost:8000/">All Time Free Time </a></h1>
+                <nav><ul>
+                    <li><a href="http://localhost:8000/about/">About</a></li>
+                    <li><a href="http://localhost:8000/category/c/">C</a></li>
+                    <li><a href="http://localhost:8000/category/japan/">japan</a></li>
+                    <li class="active"><a href="http://localhost:8000/category/python/">Python</a></li>
+                    <li><a href="http://localhost:8000/category/uncategorized/">Uncategorized</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="http://localhost:8000/2017/08/23/numpy-datetime-format/" rel="bookmark"
+           title="Permalink to Numpy datetime format">Numpy datetime format</a></h1>
+    </header>
+
+    <div class="entry-content">
+<footer class="post-info">
+        <abbr class="published" title="2017-08-23T18:29:00+02:00">
+                Published: Wed 23 August 2017
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="http://localhost:8000/author/frank/">frank</a>
+        </address>
+<p>In <a href="http://localhost:8000/category/python/">Python</a>.</p>
+<p>tags: <a href="http://localhost:8000/tag/datetime/">datetime</a> <a href="http://localhost:8000/tag/numpy/">Numpy</a> <a href="http://localhost:8000/tag/python/">Python</a> </p>
+</footer><!-- /.post-info -->      <p>Python has a lot of ways to handle dates and times. This landscape of modules can be very messy 
+for new users. Which format to use? What methods are suitable? It took me a while to figure out what
+ways were most convenient. To keep it simple I almost exclusively use the
+<a href="https://docs.python.org/3/library/datetime.html">datetime</a> module. And epoch timestamps or ISO
+strings for portability.</p>
+<p>But today I needed to do calculations with dates in long Numpy vectors. So I wasn't looking forward
+to looping over each index and doing datetime stuff step by step. Most of the advice says to use Pandas for this, but I don't use it since I'm used to work with vectors and Numpy. Besides, it's slower than pure Numpy, and almost everything I do gets used in production so performance counts.</p>
+<p>Fortunately Numpy has a datetime format as well, called
+<a href="https://docs.scipy.org/doc/numpy/reference/arrays.datetime.html">datetime64</a>.
+It's not as full fledged as the datetime module, but it worked really nice for my task. Here is
+how I converted my array with epoch timestamps to the Numpy datetime64 format.</p>
+<div class="highlight"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">epochs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1496567408</span><span class="p">,</span> <span class="mi">1503416178</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">dt64</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">epochs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;datetime64[s]&#39;</span><span class="p">)</span>
+<span class="n">array</span><span class="p">([</span><span class="s1">&#39;2017-06-04T09:10:08&#39;</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="s1">&#39;2017-08-22T15:36:17&#39;</span><span class="p">])</span>
+</pre></div>
+
+
+<p>You can change the unit with <code>.astype</code> and
+<a href="https://docs.scipy.org/doc/numpy/reference/arrays.datetime.html#datetime-units">different letters</a>
+in the bracket after the datetime64 designator. If you change the unit for example to days, all
+time information is truncated. This comes in handy when doing calculations. Suppose I have a giant
+list of epoch timestamps and I want to know which day of the month they are. By subtracting the year
+and month all that remains is the day, which I can easily cast as an integer. Plus 1 because days of
+the month don't use zero-based numbering.</p>
+<div class="highlight"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">as_days</span> <span class="o">=</span> <span class="n">dt64</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;datetime64[D]&#39;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">as_months</span> <span class="o">=</span> <span class="n">dt64</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;datetime64[M]&#39;</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">day_of_month</span> <span class="o">=</span> <span class="p">(</span><span class="n">as_days</span> <span class="o">-</span> <span class="n">as_months</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="n">array</span><span class="p">([</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="mi">22</span><span class="p">,</span> <span class="mi">22</span><span class="p">,</span> <span class="mi">22</span><span class="p">])</span>
+</pre></div>
+
+
+<p>A bit harder but still quite understandable is a way to get the day of the week of a long array
+with datetimes. Numpy has a
+<a href="https://docs.scipy.org/doc/numpy/reference/arrays.datetime.html#np-is-busday">function</a>
+to determine whether a datetime is on a business day or not. You can supply a
+<a href="https://docs.scipy.org/doc/numpy/reference/arrays.datetime.html#custom-weekmasks">custom mask</a>
+to select which days should return <code>True</code> or <code>False</code>. This mask has the form of a string with
+seven 1's or 0's. I used the <code>bin</code> function to create the string and <code>.zfill</code> to pad with zeros
+on the left side. The result is an array where Monday to Sunday is represented by 0 to 6.</p>
+<div class="highlight"><pre><span></span><span class="o">&gt;&gt;&gt;</span> <span class="n">day_of_week</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">dt64</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">7</span><span class="p">):</span>
+<span class="o">&gt;&gt;&gt;</span>     <span class="n">weekmask</span> <span class="o">=</span> <span class="nb">bin</span><span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="o">-</span><span class="n">i</span> <span class="o">+</span> <span class="mi">6</span><span class="p">))[</span><span class="mi">2</span><span class="p">:]</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span>     <span class="n">bools</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">is_busday</span><span class="p">(</span><span class="n">dt64</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;datetime64[D]&#39;</span><span class="p">),</span> <span class="n">weekmask</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span>     <span class="n">day_of_week</span><span class="p">[</span><span class="n">bools</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+<span class="c1"># 4-6 was a Sunday, 22-8 a Tuesday</span>
+<span class="n">array</span><span class="p">([</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+</pre></div>
+
+
+<p>By using these methods and some more Numpy magic I was able to remove Pandas from a piece of code,
+which led to a 7-fold increase in speed of the entire module. Not bad!</p>
+    </div><!-- /.entry-content -->
+
+  </article>
+</section>
+        <section id="extras" class="body">
+        </section><!-- /#extras -->
+
+        <!--<footer id="contentinfo" class="body">-->
+                <!--<address id="about" class="vcard body">-->
+                <!--Proudly powered by <a href="http://getpelican.com/">Pelican</a>, which takes great advantage of <a href="http://python.org">Python</a>.-->
+                <!--</address>&lt;!&ndash; /#about &ndash;&gt;-->
+
+                <!--<p>The theme is by <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>-->
+        <!--</footer>&lt;!&ndash; /#contentinfo &ndash;&gt;-->
+
+</body>
+</html>

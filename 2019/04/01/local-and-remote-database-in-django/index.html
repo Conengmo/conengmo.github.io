@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
         <meta charset="utf-8" />
-        <title>All Time Free Time - Python</title>
+        <title>Local and remote database in Django</title>
         <link rel="stylesheet" href="https://conengmo.github.io/theme/css/main.css" />
 </head>
 
@@ -17,10 +17,15 @@
                     <li><a href="https://conengmo.github.io/category/uncategorized/">Uncategorized</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="https://conengmo.github.io/2019/04/01/local-and-remote-database-in-django/" rel="bookmark"
+           title="Permalink to Local and remote database in Django">Local and remote database in Django</a></h1>
+    </header>
 
-            <aside id="featured" class="body">
-                <article>
-                    <h1 class="entry-title"><a href="https://conengmo.github.io/2019/04/01/local-and-remote-database-in-django/">Local and remote database in Django</a></h1>
+    <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2019-04-01T20:13:00+02:00">
                 Published: Mon 01 April 2019
@@ -31,7 +36,7 @@
         </address>
 <p>In <a href="https://conengmo.github.io/category/python/">Python</a>.</p>
 <p>tags: <a href="https://conengmo.github.io/tag/python/">Python</a> <a href="https://conengmo.github.io/tag/django/">Django</a> <a href="https://conengmo.github.io/tag/database/">database</a> </p>
-</footer><!-- /.post-info --><p>In my work we use Django with a MySQL database. It's an important part of development to manage all the data in it. I use both a local database and the remote database simultaneously in development.</p>
+</footer><!-- /.post-info -->      <p>In my work we use Django with a MySQL database. It's an important part of development to manage all the data in it. I use both a local database and the remote database simultaneously in development.</p>
 <h2>Why use a local database?</h2>
 <p>So you can write to it. You should not be able to write to the remote database while developing (I hope!), only read.
 If you write code that will write to the database, you should test that locally. Authentication logic for example needs a database to write to.</p>
@@ -126,106 +131,11 @@ all authentication will go through my local database.</p>
 <p>When you have a query that combines tables from both local and remote databases, Django will give an error. There are only two (simple) solutions: either move all tables in the query to your local database, or (temporarily) use the remote database for them all.</p>
 <p>So in short, if a table you use locally has foreign keys it's best to also put those tables locally.</p>
 <h1>Conclusion</h1>
-<p>Using a Router enables you to have a local database for doing proper development while spending little time keeping your local database up to date with the remote.</p>                </article>
-            </aside><!-- /#featured -->
-                <section id="content" class="body">
-                    <h1>Other articles</h1>
-                    <hr />
-                    <ol id="posts-list" class="hfeed">
+<p>Using a Router enables you to have a local database for doing proper development while spending little time keeping your local database up to date with the remote.</p>
+    </div><!-- /.entry-content -->
 
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="https://conengmo.github.io/2018/06/06/map-a-point-on-a-road/" rel="bookmark"
-                           title="Permalink to Map a point on a road with Python and Numpy">Map a point on a road with Python and Numpy</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2018-06-06T16:01:00+02:00">
-                Published: Wed 06 June 2018
-        </abbr>
-
-        <address class="vcard author">
-                By                         <a class="url fn" href="https://conengmo.github.io/author/frank/">frank</a>
-        </address>
-<p>In <a href="https://conengmo.github.io/category/python/">Python</a>.</p>
-<p>tags: <a href="https://conengmo.github.io/tag/numpy/">Numpy</a> <a href="https://conengmo.github.io/tag/python/">Python</a> </p>
-</footer><!-- /.post-info -->                <p>I regularly work with GPS trajectories, and part of this is figuring out to which roads these points belong. The roads I work with consist of multiple nodes that together form a line. My GPS coordinates are never precisely on the road, and even though I do know to which …</p>
-                <a class="readmore" href="https://conengmo.github.io/2018/06/06/map-a-point-on-a-road/">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
-
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="https://conengmo.github.io/2017/08/29/matrix-inversion/" rel="bookmark"
-                           title="Permalink to Matrix inversion">Matrix inversion</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2017-08-29T18:15:00+02:00">
-                Published: Tue 29 August 2017
-        </abbr>
-
-        <address class="vcard author">
-                By                         <a class="url fn" href="https://conengmo.github.io/author/frank/">frank</a>
-        </address>
-<p>In <a href="https://conengmo.github.io/category/python/">Python</a>.</p>
-<p>tags: <a href="https://conengmo.github.io/tag/matrix/">matrix</a> <a href="https://conengmo.github.io/tag/matrix-inversion/">matrix inversion</a> <a href="https://conengmo.github.io/tag/numpy/">Numpy</a> <a href="https://conengmo.github.io/tag/optimization/">optimization</a> <a href="https://conengmo.github.io/tag/python/">Python</a> </p>
-</footer><!-- /.post-info -->                <p>In one of our dynamic models there is an iterative step where a matrix needs to be inverted.
-Now matrix inversions can be tricky, so you shouldn't use them without care. If your matrix is not
-invertible, in many cases you can still apply the inverse but end up with …</p>
-                <a class="readmore" href="https://conengmo.github.io/2017/08/29/matrix-inversion/">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
-
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="https://conengmo.github.io/2017/08/23/numpy-datetime-format/" rel="bookmark"
-                           title="Permalink to Numpy datetime format">Numpy datetime format</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2017-08-23T18:29:00+02:00">
-                Published: Wed 23 August 2017
-        </abbr>
-
-        <address class="vcard author">
-                By                         <a class="url fn" href="https://conengmo.github.io/author/frank/">frank</a>
-        </address>
-<p>In <a href="https://conengmo.github.io/category/python/">Python</a>.</p>
-<p>tags: <a href="https://conengmo.github.io/tag/datetime/">datetime</a> <a href="https://conengmo.github.io/tag/numpy/">Numpy</a> <a href="https://conengmo.github.io/tag/python/">Python</a> </p>
-</footer><!-- /.post-info -->                <p>Python has a lot of ways to handle dates and times. This landscape of modules can be very messy 
-for new users. Which format to use? What methods are suitable? It took me a while to figure out what
-ways were most convenient. To keep it simple I almost exclusively …</p>
-                <a class="readmore" href="https://conengmo.github.io/2017/08/23/numpy-datetime-format/">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
-
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="https://conengmo.github.io/2017/07/31/vectorizing-old-code-and-measuring-speed/" rel="bookmark"
-                           title="Permalink to Vectorizing old code and measuring speed">Vectorizing old code and measuring speed</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2017-07-31T18:15:00+02:00">
-                Published: Mon 31 July 2017
-        </abbr>
-
-        <address class="vcard author">
-                By                         <a class="url fn" href="https://conengmo.github.io/author/frank/">frank</a>
-        </address>
-<p>In <a href="https://conengmo.github.io/category/python/">Python</a>.</p>
-<p>tags: <a href="https://conengmo.github.io/tag/numpy/">Numpy</a> <a href="https://conengmo.github.io/tag/optimization/">optimization</a> <a href="https://conengmo.github.io/tag/python/">Python</a> </p>
-</footer><!-- /.post-info -->                <p>I just finished refactoring a piece of code that was not so well written. We make use of Numpy arrays to store our timeseries. This particular piece of code didn't use native Numpy methods, but instead used a for-loop to iterate over every timestep in the array. This part also …</p>
-                <a class="readmore" href="https://conengmo.github.io/2017/07/31/vectorizing-old-code-and-measuring-speed/">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
-                </ol><!-- /#posts-list -->
-                </section><!-- /#content -->
+  </article>
+</section>
         <section id="extras" class="body">
         </section><!-- /#extras -->
 

@@ -20,7 +20,126 @@
 
             <aside id="featured" class="body">
                 <article>
-                    <h1 class="entry-title"><a href="https://conengmo.github.io/2018/06/06/map-a-point-on-a-road/">Map a point on a road with Python and Numpy</a></h1>
+                    <h1 class="entry-title"><a href="https://conengmo.github.io/2019/04/01/local-and-remote-database-in-django/">Local and remote database in Django</a></h1>
+<footer class="post-info">
+        <abbr class="published" title="2019-04-01T20:13:00+02:00">
+                Published: Mon 01 April 2019
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="https://conengmo.github.io/author/frank/">frank</a>
+        </address>
+<p>In <a href="https://conengmo.github.io/category/python/">Python</a>.</p>
+<p>tags: <a href="https://conengmo.github.io/tag/python/">Python</a> <a href="https://conengmo.github.io/tag/django/">Django</a> <a href="https://conengmo.github.io/tag/database/">database</a> </p>
+</footer><!-- /.post-info --><p>In my work we use Django with a MySQL database. It's an important part of development to manage all the data in it. I use both a local database and the remote database simultaneously in development.</p>
+<h2>Why use a local database?</h2>
+<p>So you can write to it. You should not be able to write to the remote database while developing (I hope!), only read.
+If you write code that will write to the database, you should test that locally. Authentication logic for example needs a database to write to.</p>
+<h2>Then why also use the remote database?</h2>
+<p>If you use data from the remote database, you're using the actual data your code will work with. You will find bugs that you may not have found with local dummy data.
+But if you copy the remote to your local database, keeping that up to date is a chore that takes time and attention away from doing cool stuff.</p>
+<h2>Can I have the best of both?</h2>
+<p>Yes you can. You can use the remote database as much as possible, while using your local database when needed. And that almost automatically.</p>
+<h1>Introducing Django router</h1>
+<p>Django has an option to use multiple databases simultaneously. To let Django know when it should use which database, you can define a 'router' class. Django passes models it needs to use to perform a request to it, and expects the router to say which database it should use.</p>
+<p><img alt="" src="https://conengmo.github.io/wp-content/uploads/2019/04/django-db-router-schema.png" width="760"></p>
+<p>Here is the relevant page in the Django documentation:</p>
+<p><a href="https://docs.djangoproject.com/en/stable/topics/db/multi-db/">https://docs.djangoproject.com/en/stable/topics/db/multi-db/</a></p>
+<h1>Implementing the router</h1>
+<h2>Settings file</h2>
+<p>All the changes below I made in my settings file <code>local_settings.py</code> . Whenever I run Django I use that settings file.</p>
+<h2>Define databases</h2>
+<p>First, define the remote and the local database you want to use. Django doesn't work without a default, so I chose to use the remote database for that.</p>
+<div class="highlight"><pre><span></span><span class="n">DATABASES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;ENGINE&#39;</span><span class="p">:</span> <span class="s1">&#39;django.db.backends.mysql&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;NAME&#39;</span><span class="p">:</span> <span class="s1">&#39;&lt;mydb&gt;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;USER&#39;</span><span class="p">:</span> <span class="s1">&#39;&lt;readonlyuser&gt;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;PASSWORD&#39;</span><span class="p">:</span> <span class="s1">&#39;&lt;password&gt;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;HOST&#39;</span><span class="p">:</span> <span class="s1">&#39;&lt;host.hosting.net&gt;&#39;</span><span class="p">,</span>
+    <span class="p">},</span>
+
+    <span class="s1">&#39;local&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;ENGINE&#39;</span><span class="p">:</span> <span class="s1">&#39;django.db.backends.mysql&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;NAME&#39;</span><span class="p">:</span> <span class="s1">&#39;&lt;mydb&gt;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;USER&#39;</span><span class="p">:</span> <span class="s1">&#39;&lt;localuser&gt;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;PASSWORD&#39;</span><span class="p">:</span> <span class="s1">&#39;&lt;localpassword&gt;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;HOST&#39;</span><span class="p">:</span> <span class="s1">&#39;localhost&#39;</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h2>Define your local models, tables and apps</h2>
+<p>You are free to make your own switches between local and remote, but here are three to get you started.
+I define three <a href="https://duckduckgo.com/?q=python+sets">sets</a>: <code>Model</code> names, table names and app names.</p>
+<div class="highlight"><pre><span></span><span class="n">local_models</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;ModelName&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">local_tables</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;django_session&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;auth_user&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">local_apps</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;social_django&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>By adding the <code>django_sesion</code> and <code>auth_user</code> tables and the <code>social_django</code> app, I make sure
+all authentication will go through my local database.</p>
+<h2>Create router class</h2>
+<p>Below is the code for the router class, that determines which database will be used. </p>
+<p>Django expects a router class to have <code>db_for_read</code> and <code>db_for_write</code> methods. It passes a <code>Model</code> object to them and expects an optional string database name in return. In our case that's either <code>'local'</code> or <code>None</code> for the default.</p>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Router</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">db_for_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">hints</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">db_for_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">hints</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">in</span> <span class="n">local_models</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;local&#39;</span>
+        <span class="k">elif</span> <span class="n">model</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">db_table</span> <span class="ow">in</span> <span class="n">local_tables</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;local&#39;</span>
+        <span class="k">elif</span> <span class="n">model</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">app_label</span> <span class="ow">in</span> <span class="n">local_apps</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;local&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+</pre></div>
+
+
+<h2>Activate the router</h2>
+<p>Enable the router by simply specifying its location in the settings:</p>
+<div class="highlight"><pre><span></span><span class="n">DATABASE_ROUTERS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;local_settings.Router&#39;</span><span class="p">]</span>
+</pre></div>
+
+
+<h1>Side effects</h1>
+<h2>Migrations</h2>
+<p>Whenever you need to do a migration you need to specify which database Django should use. You can do that with the <code>--database</code> command line option. E.g.</p>
+<p><code>python manage.py migrate --database local</code> </p>
+<h2>Queries using both databases</h2>
+<p>When you have a query that combines tables from both local and remote databases, Django will give an error. There are only two (simple) solutions: either move all tables in the query to your local database, or (temporarily) use the remote database for them all.</p>
+<p>So in short, if a table you use locally has foreign keys it's best to also put those tables locally.</p>
+<h1>Conclusion</h1>
+<p>Using a Router enables you to have a local database for doing proper development while spending little time keeping your local database up to date with the remote.</p>                </article>
+            </aside><!-- /#featured -->
+                <section id="content" class="body">
+                    <h1>Other articles</h1>
+                    <hr />
+                    <ol id="posts-list" class="hfeed">
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="https://conengmo.github.io/2018/06/06/map-a-point-on-a-road/" rel="bookmark"
+                           title="Permalink to Map a point on a road with Python and Numpy">Map a point on a road with Python and Numpy</a></h1>
+                </header>
+
+                <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2018-06-06T16:01:00+02:00">
                 Published: Wed 06 June 2018
@@ -31,55 +150,10 @@
         </address>
 <p>In <a href="https://conengmo.github.io/category/python/">Python</a>.</p>
 <p>tags: <a href="https://conengmo.github.io/tag/numpy/">Numpy</a> <a href="https://conengmo.github.io/tag/python/">Python</a> </p>
-</footer><!-- /.post-info --><p>I regularly work with GPS trajectories, and part of this is figuring out to which roads these points belong. The roads I work with consist of multiple nodes that together form a line. My GPS coordinates are never precisely on the road, and even though I do know to which road they belong, I still need to know where on that road.</p>
-<p><img alt="" class="size-full wp-image-631" height="166" src="https://conengmo.github.io/wp-content/uploads/2018/06/Capture.png" width="581"></p>
-<p><em>This point is close to a road consisting of multiple line elements</em></p>
-<p>The easiest way to do this is to... just not do it at all and just take the first node of the road. A better approach is to calculate the distance to each node and find the closest node, but that's still not accurate. We want to find the point on the road that is closest to our point of interest. Luckily this is easy to do in Python. You could do it with a for-loop, but using Numpy means this also works fast for roads with a lot of nodes.</p>
-<p>To discuss this problem consider the following simplified example, in which there are four lines with five nodes and a single point:</p>
-<p><img alt="" class="alignnone size-full wp-image-617" height="412" src="https://conengmo.github.io/wp-content/uploads/2018/06/Capture-2.png" width="545"></p>
-<p>Instead of latitude/longitude values, I'm just using dimensionless integers here. I store the coordinates of the line nodes in Numpy arrays and the coordinates of the point as simple integers.</p>
-<div class="highlight"><pre><span></span><span class="n">n</span> <span class="o">=</span> <span class="mi">4</span>
-<span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-<span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
-<span class="n">xp</span><span class="p">,</span> <span class="n">yp</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span>
-</pre></div>
-
-
-<p>Now I calculate for each line the location of the point on it closest to our point of interest.</p>
-<div class="highlight"><pre><span></span><span class="c1"># Calculate the difference in x and y between start and end of the lines</span>
-<span class="n">dxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span>
-<span class="n">dys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span>
-<span class="c1"># Calculate the ratios of the point compared to the line lengths</span>
-<span class="n">ratios</span> <span class="o">=</span> <span class="p">((</span><span class="n">xp</span> <span class="o">-</span> <span class="n">xs</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">dxs</span>
-<span class="o">+</span> <span class="p">(</span><span class="n">yp</span> <span class="o">-</span> <span class="n">ys</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">dys</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">dxs</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">dys</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
-<span class="c1"># Remove NaN&#39;s caused by dividing by zero</span>
-<span class="n">ratios</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">ratios</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="c1"># The lines are finite, so limit the ratios between 0 and 1</span>
-<span class="n">ratios</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">ratios</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="c1"># The candidates for each line are the start of the line</span>
-<span class="c1"># plus the ratio times difference between start and end.</span>
-<span class="n">x_cands</span> <span class="o">=</span> <span class="n">xs</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">ratios</span> <span class="o">*</span> <span class="n">dxs</span>
-<span class="n">y_cands</span> <span class="o">=</span> <span class="n">ys</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">ratios</span> <span class="o">*</span> <span class="n">dys</span>
-</pre></div>
-
-
-<p>We have four lines, so also four candidate points. By calculating the distance from each point to our point of interest, we can determine which point is the closest.</p>
-<div class="highlight"><pre><span></span><span class="c1"># Find the closest candidate by minimizing the distance</span>
-<span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x_cands</span> <span class="o">-</span> <span class="n">xp</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">y_cands</span> <span class="o">-</span> <span class="n">yp</span><span class="p">))</span>
-<span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
-<span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">x_cands</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">y_cands</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
-</pre></div>
-
-
-<p>So it turns out our point is closest to the line <code>[(6, 4), (-1, 2)]</code>. If you look in the picture you can see that the green line indicating the distance is perpendicular to the original blue line, as you would expect.</p>
-<p><img alt="" class="alignnone size-full wp-image-623" height="418" src="https://conengmo.github.io/wp-content/uploads/2018/06/Capture-1.png" width="547"></p>
-<p>The cool thing is that because we're using Numpy, this also works reasonably fast for larger numbers of lines.</p>
-<p><img alt="" class="alignnone size-full wp-image-627" height="421" src="https://conengmo.github.io/wp-content/uploads/2018/06/Capture-3.png" width="574"></p>                </article>
-            </aside><!-- /#featured -->
-                <section id="content" class="body">
-                    <h1>Other articles</h1>
-                    <hr />
-                    <ol id="posts-list" class="hfeed">
+</footer><!-- /.post-info -->                <p>I regularly work with GPS trajectories, and part of this is figuring out to which roads these points belong. The roads I work with consist of multiple nodes that together form a line. My GPS coordinates are never precisely on the road, and even though I do know to which …</p>
+                <a class="readmore" href="https://conengmo.github.io/2018/06/06/map-a-point-on-a-road/">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
 
             <li><article class="hentry">
                 <header>

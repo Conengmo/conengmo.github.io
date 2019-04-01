@@ -20,7 +20,126 @@
 
             <aside id="featured" class="body">
                 <article>
-                    <h1 class="entry-title"><a href="https://conengmo.github.io/2018/11/17/linux-voodoo-boot-is-full/">Linux voodoo: /boot is full</a></h1>
+                    <h1 class="entry-title"><a href="https://conengmo.github.io/2019/04/01/local-and-remote-database-in-django/">Local and remote database in Django</a></h1>
+<footer class="post-info">
+        <abbr class="published" title="2019-04-01T20:13:00+02:00">
+                Published: Mon 01 April 2019
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="https://conengmo.github.io/author/frank/">frank</a>
+        </address>
+<p>In <a href="https://conengmo.github.io/category/python/">Python</a>.</p>
+<p>tags: <a href="https://conengmo.github.io/tag/python/">Python</a> <a href="https://conengmo.github.io/tag/django/">Django</a> <a href="https://conengmo.github.io/tag/database/">database</a> </p>
+</footer><!-- /.post-info --><p>In my work we use Django with a MySQL database. It's an important part of development to manage all the data in it. I use both a local database and the remote database simultaneously in development.</p>
+<h2>Why use a local database?</h2>
+<p>So you can write to it. You should not be able to write to the remote database while developing (I hope!), only read.
+If you write code that will write to the database, you should test that locally. Authentication logic for example needs a database to write to.</p>
+<h2>Then why also use the remote database?</h2>
+<p>If you use data from the remote database, you're using the actual data your code will work with. You will find bugs that you may not have found with local dummy data.
+But if you copy the remote to your local database, keeping that up to date is a chore that takes time and attention away from doing cool stuff.</p>
+<h2>Can I have the best of both?</h2>
+<p>Yes you can. You can use the remote database as much as possible, while using your local database when needed. And that almost automatically.</p>
+<h1>Introducing Django router</h1>
+<p>Django has an option to use multiple databases simultaneously. To let Django know when it should use which database, you can define a 'router' class. Django passes models it needs to use to perform a request to it, and expects the router to say which database it should use.</p>
+<p><img alt="" src="https://conengmo.github.io/wp-content/uploads/2019/04/django-db-router-schema.png" width="760"></p>
+<p>Here is the relevant page in the Django documentation:</p>
+<p><a href="https://docs.djangoproject.com/en/stable/topics/db/multi-db/">https://docs.djangoproject.com/en/stable/topics/db/multi-db/</a></p>
+<h1>Implementing the router</h1>
+<h2>Settings file</h2>
+<p>All the changes below I made in my settings file <code>local_settings.py</code> . Whenever I run Django I use that settings file.</p>
+<h2>Define databases</h2>
+<p>First, define the remote and the local database you want to use. Django doesn't work without a default, so I chose to use the remote database for that.</p>
+<div class="highlight"><pre><span></span><span class="n">DATABASES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;ENGINE&#39;</span><span class="p">:</span> <span class="s1">&#39;django.db.backends.mysql&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;NAME&#39;</span><span class="p">:</span> <span class="s1">&#39;&lt;mydb&gt;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;USER&#39;</span><span class="p">:</span> <span class="s1">&#39;&lt;readonlyuser&gt;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;PASSWORD&#39;</span><span class="p">:</span> <span class="s1">&#39;&lt;password&gt;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;HOST&#39;</span><span class="p">:</span> <span class="s1">&#39;&lt;host.hosting.net&gt;&#39;</span><span class="p">,</span>
+    <span class="p">},</span>
+
+    <span class="s1">&#39;local&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;ENGINE&#39;</span><span class="p">:</span> <span class="s1">&#39;django.db.backends.mysql&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;NAME&#39;</span><span class="p">:</span> <span class="s1">&#39;&lt;mydb&gt;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;USER&#39;</span><span class="p">:</span> <span class="s1">&#39;&lt;localuser&gt;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;PASSWORD&#39;</span><span class="p">:</span> <span class="s1">&#39;&lt;localpassword&gt;&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;HOST&#39;</span><span class="p">:</span> <span class="s1">&#39;localhost&#39;</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h2>Define your local models, tables and apps</h2>
+<p>You are free to make your own switches between local and remote, but here are three to get you started.
+I define three <a href="https://duckduckgo.com/?q=python+sets">sets</a>: <code>Model</code> names, table names and app names.</p>
+<div class="highlight"><pre><span></span><span class="n">local_models</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;ModelName&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">local_tables</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;django_session&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;auth_user&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">local_apps</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;social_django&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>By adding the <code>django_sesion</code> and <code>auth_user</code> tables and the <code>social_django</code> app, I make sure
+all authentication will go through my local database.</p>
+<h2>Create router class</h2>
+<p>Below is the code for the router class, that determines which database will be used. </p>
+<p>Django expects a router class to have <code>db_for_read</code> and <code>db_for_write</code> methods. It passes a <code>Model</code> object to them and expects an optional string database name in return. In our case that's either <code>'local'</code> or <code>None</code> for the default.</p>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Router</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">db_for_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">hints</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">db_for_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">hints</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">in</span> <span class="n">local_models</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;local&#39;</span>
+        <span class="k">elif</span> <span class="n">model</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">db_table</span> <span class="ow">in</span> <span class="n">local_tables</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;local&#39;</span>
+        <span class="k">elif</span> <span class="n">model</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">app_label</span> <span class="ow">in</span> <span class="n">local_apps</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;local&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+</pre></div>
+
+
+<h2>Activate the router</h2>
+<p>Enable the router by simply specifying its location in the settings:</p>
+<div class="highlight"><pre><span></span><span class="n">DATABASE_ROUTERS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;local_settings.Router&#39;</span><span class="p">]</span>
+</pre></div>
+
+
+<h1>Side effects</h1>
+<h2>Migrations</h2>
+<p>Whenever you need to do a migration you need to specify which database Django should use. You can do that with the <code>--database</code> command line option. E.g.</p>
+<p><code>python manage.py migrate --database local</code> </p>
+<h2>Queries using both databases</h2>
+<p>When you have a query that combines tables from both local and remote databases, Django will give an error. There are only two (simple) solutions: either move all tables in the query to your local database, or (temporarily) use the remote database for them all.</p>
+<p>So in short, if a table you use locally has foreign keys it's best to also put those tables locally.</p>
+<h1>Conclusion</h1>
+<p>Using a Router enables you to have a local database for doing proper development while spending little time keeping your local database up to date with the remote.</p>                </article>
+            </aside><!-- /#featured -->
+                <section id="content" class="body">
+                    <h1>Other articles</h1>
+                    <hr />
+                    <ol id="posts-list" class="hfeed">
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="https://conengmo.github.io/2018/11/17/linux-voodoo-boot-is-full/" rel="bookmark"
+                           title="Permalink to Linux voodoo: /boot is full">Linux voodoo: /boot is full</a></h1>
+                </header>
+
+                <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2018-11-17T18:45:00+01:00">
                 Published: Sat 17 November 2018
@@ -31,24 +150,11 @@
         </address>
 <p>In <a href="https://conengmo.github.io/category/uncategorized/">Uncategorized</a>.</p>
 
-</footer><!-- /.post-info --><p>I've occasionally had a weird, specific problem in Linux. <code>apt-get</code> wouldn't work anymore because <code>/boot</code> is full. You cannot just empty your <code>/boot</code>, that will break your system. Luckily, others wrote about this problem before: https://ubuntuforums.org/showthread.php?t=2360972.</p>
-<p>Here's my guide on how to solve this problem.</p>
-<p>Check your drives with <code>df</code>. Is <code>\boot</code> full? That sucks. Now apt cannot even clean it up by itself.</p>
-<p>First look here: <code>ls /var/cache/apt/archives</code>. Note the lower kernel version number. I'm for example seeing a <code>generic_4.4.0.127</code> and <code>generic_4.4.0.128</code>.</p>
-<p>List the ten largest files in your boot directory (note that officially you shouldn't parse the output from <code>ls</code>, because filenames can contain newline characters in them, yada yada, just do it and be productive):</p>
-<p><code>ls -l -S /boot | head -10</code></p>
-<p>Note the numbers. We'll remove kernel versions that you didn't see in the apt cache.</p>
-<p>Run a loop to remove the files (note that you may need to change the 4.4.0 number):</p>
-<p><code>for VARIABLE in 87 112 101 109 104 103 116 119 121 do     sudo dpkg --remove linux-image-4.4.0-$VARIABLE-generic linux-image-extra-4.4.0-$VARIABLE-generic done</code></p>
-<p>Now <code>/boot</code> should have enough space. Check with <code>df /boot</code>.</p>
-<p>Update the dependencies with <code>sudo apt-get install -f</code>. Hopefully everything went well without <code>/boot</code> running full again.</p>
-<p><code>apt</code> should run again, and old stuff can be purged with <code>sudo apt-get autoremove</code>.</p>
-<p>Now you can stop server wrangling and go back to building awesome stuff.</p>                </article>
-            </aside><!-- /#featured -->
-                <section id="content" class="body">
-                    <h1>Other articles</h1>
-                    <hr />
-                    <ol id="posts-list" class="hfeed">
+</footer><!-- /.post-info -->                <p>I've occasionally had a weird, specific problem in Linux. <code>apt-get</code> wouldn't work anymore because <code>/boot</code> is full. You cannot just empty your <code>/boot</code>, that will break your system. Luckily, others wrote about this problem before: https://ubuntuforums.org/showthread.php?t=2360972.</p>
+<p>Here's my guide on how to solve this …</p>
+                <a class="readmore" href="https://conengmo.github.io/2018/11/17/linux-voodoo-boot-is-full/">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
 
             <li><article class="hentry">
                 <header>
@@ -229,28 +335,6 @@ invertible, in many cases you can still apply the inverse but end up with …</p
 for new users. Which format to use? What methods are suitable? It took me a while to figure out what
 ways were most convenient. To keep it simple I almost exclusively …</p>
                 <a class="readmore" href="https://conengmo.github.io/2017/08/23/numpy-datetime-format/">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
-
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="https://conengmo.github.io/2017/07/31/vectorizing-old-code-and-measuring-speed/" rel="bookmark"
-                           title="Permalink to Vectorizing old code and measuring speed">Vectorizing old code and measuring speed</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2017-07-31T18:15:00+02:00">
-                Published: Mon 31 July 2017
-        </abbr>
-
-        <address class="vcard author">
-                By                         <a class="url fn" href="https://conengmo.github.io/author/frank/">frank</a>
-        </address>
-<p>In <a href="https://conengmo.github.io/category/python/">Python</a>.</p>
-<p>tags: <a href="https://conengmo.github.io/tag/numpy/">Numpy</a> <a href="https://conengmo.github.io/tag/optimization/">optimization</a> <a href="https://conengmo.github.io/tag/python/">Python</a> </p>
-</footer><!-- /.post-info -->                <p>I just finished refactoring a piece of code that was not so well written. We make use of Numpy arrays to store our timeseries. This particular piece of code didn't use native Numpy methods, but instead used a for-loop to iterate over every timestep in the array. This part also …</p>
-                <a class="readmore" href="https://conengmo.github.io/2017/07/31/vectorizing-old-code-and-measuring-speed/">read more</a>
                 </div><!-- /.entry-content -->
             </article></li>
                 </ol><!-- /#posts-list -->

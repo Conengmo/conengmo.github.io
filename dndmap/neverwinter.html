@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+  <title>dndmap</title>
+  <link rel="icon" href="data:,">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
+        rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC"
+        crossorigin="anonymous">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+        integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
+        crossorigin=""/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+        integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"/>
+  <link rel="stylesheet" href="awesome_markers/leaflet.awesome-markers.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/conengmo/Leaflet.SimpleCRSMeasurement/leaflet-ruler.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
+
+  <style>
+      html, body, #map {
+          width: 100%;
+          height: 100%;
+          margin: 0;
+          padding: 0;
+          background-color: #f8f9fa
+      }
+
+      .leaflet-control-layers-overlays label {
+          margin: 6px 6px;
+      }
+  </style>
+
+<body>
+
+<div id="map"></div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"
+        integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF"
+        crossorigin="anonymous"></script>
+<script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+        integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
+        crossorigin=""></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"
+        integrity="sha512-Tn2m0TIpgVyTzzvmxLNuqbSJH3JP8jm+Cy3hvHrW7ndTDcJ1w5mBiksqDBb8GpE2ksktFvDB/ykZ0mDpsZj20w=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+<script src="awesome_markers/leaflet.awesome-markers.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/conengmo/Leaflet.SimpleCRSMeasurement/leaflet-ruler.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
+
+<script src="rastercoords.js"></script>
+
+<script>
+    let map;
+    let component_layers = [];
+    let layer_control;
+    let draggable_markers = false;
+    let permanent_tooltips = false;
+
+    let img = [
+        1600,
+        1128,
+    ]
+    map = L.map('map', {
+        crs: L.CRS.Simple,
+    })
+    const raster_coords = new L.RasterCoords(map, img)
+    map.setView(raster_coords.unproject([img[0], img[1]]), 2)
+
+    L.tileLayer('tiles/2/{z}/{x}/{y}.png', {
+        noWrap: true,
+        bounds: raster_coords.getMaxBounds(),
+        minZoom: 1,
+        maxZoom: 4,
+    }).addTo(map)
+
+    layer_control = L.control.layers({}, {}, {collapsed: false}).addTo(map);
+
+    let layer_group;
+
+    
+        layer_group = L.layerGroup([]).addTo(map);
+        layer_group.show_at_zoom_level = 0;
+        component_layers.push(layer_group);
+        layer_control.addOverlay(layer_group, "default");
+
+        
+            L.marker(
+                [-69.25, 62.5],
+                {
+                    icon: L.AwesomeMarkers.icon({
+                        markerColor: "blue",
+                        icon: "house-damage",
+                        iconColor: "#ffffff",
+                    }),
+                    title: "Castle Never"
+                },
+            )
+                .addTo(layer_group)
+                .bindTooltip("Castle Never")
+                
+                    .bindPopup(`Nu grotendeels een ruine`)
+                
+        
+            L.marker(
+                [-83.75, 47.5],
+                {
+                    icon: L.AwesomeMarkers.icon({
+                        markerColor: "blue",
+                        icon: "landmark",
+                        iconColor: "#ffffff",
+                    }),
+                    title: "Rechtbank/gemeentehuis/tempel van Tyr"
+                },
+            )
+                .addTo(layer_group)
+                .bindTooltip("Rechtbank/gemeentehuis/tempel van Tyr")
+                
+                    .bindPopup(`Zetel van Dagult Neverember, beschermheer van de stad. Voormalige tempel van Tyr, al zijn enkele leden van de orde nog aanwezig.`)
+                
+        
+            L.marker(
+                [-71.875, 96.0625],
+                {
+                    icon: L.AwesomeMarkers.icon({
+                        markerColor: "blue",
+                        icon: "university",
+                        iconColor: "#ffffff",
+                    }),
+                    title: "Huis der Wetenschap"
+                },
+            )
+                .addTo(layer_group)
+                .bindTooltip("Huis der Wetenschap")
+                
+        
+            L.marker(
+                [-56.75, 174.25],
+                {
+                    icon: L.AwesomeMarkers.icon({
+                        markerColor: "blue",
+                        icon: "gopuram",
+                        iconColor: "#ffffff",
+                    }),
+                    title: "Stadstovenaar&#x27;s toren"
+                },
+            )
+                .addTo(layer_group)
+                .bindTooltip("Stadstovenaar&#x27;s toren")
+                
+                    .bindPopup(`Beheert door de charmante doch onzekere assistent van de stadstovenaar, die graag bevestiging vindt dat de tovenaar dood is.`)
+                
+        
+            L.marker(
+                [-104.75, 97.125],
+                {
+                    icon: L.AwesomeMarkers.icon({
+                        markerColor: "blue",
+                        icon: "place-of-worship",
+                        iconColor: "#ffffff",
+                    }),
+                    title: "tempel van Pelor de Vernieuwer"
+                },
+            )
+                .addTo(layer_group)
+                .bindTooltip("tempel van Pelor de Vernieuwer")
+                
+        
+            L.marker(
+                [-119.625, 84.9375],
+                {
+                    icon: L.AwesomeMarkers.icon({
+                        markerColor: "blue",
+                        icon: "monument",
+                        iconColor: "#ffffff",
+                    }),
+                    title: "begraafplaats"
+                },
+            )
+                .addTo(layer_group)
+                .bindTooltip("begraafplaats")
+                
+        
+            L.marker(
+                [-78.5, 26.25],
+                {
+                    icon: L.AwesomeMarkers.icon({
+                        markerColor: "purple",
+                        icon: "mask",
+                        iconColor: "#ffffff",
+                    }),
+                    title: "De Maansteen"
+                },
+            )
+                .addTo(layer_group)
+                .bindTooltip("De Maansteen")
+                
+                    .bindPopup(`De plek om te verblijven als geld geen rol speelt.<br>Mooie mensen!`)
+                
+        
+            L.marker(
+                [-37.5, 148.625],
+                {
+                    icon: L.AwesomeMarkers.icon({
+                        markerColor: "purple",
+                        icon: "hand-sparkles",
+                        iconColor: "#ffffff",
+                    }),
+                    title: "De Gevallen Toren"
+                },
+            )
+                .addTo(layer_group)
+                .bindTooltip("De Gevallen Toren")
+                
+                    .bindPopup(`Een taverne in een ingestorte tovenaarstoren.`)
+                
+        
+            L.marker(
+                [-57.0625, 108.5],
+                {
+                    icon: L.AwesomeMarkers.icon({
+                        markerColor: "purple",
+                        icon: "beer",
+                        iconColor: "#ffffff",
+                    }),
+                    title: "De Glimmende Slang"
+                },
+            )
+                .addTo(layer_group)
+                .bindTooltip("De Glimmende Slang")
+                
+                    .bindPopup(`Ruim opgezette herberg zonder noemenswaardige problemen. <br><br>Edit 12-08 -behalve dat we er bijna gedood zijn door een Assassin-`)
+                
+        
+            L.marker(
+                [-63.25, 38.9375],
+                {
+                    icon: L.AwesomeMarkers.icon({
+                        markerColor: "purple",
+                        icon: "anchor",
+                        iconColor: "#ffffff",
+                    }),
+                    title: "De Gestrande Kolos"
+                },
+            )
+                .addTo(layer_group)
+                .bindTooltip("De Gestrande Kolos")
+                
+                    .bindPopup(`Herberg favoriet bij zeelui en dokwerkers.`)
+                
+        
+            L.marker(
+                [-46.75, 72.625],
+                {
+                    icon: L.AwesomeMarkers.icon({
+                        markerColor: "orange",
+                        icon: "shopping-basket",
+                        iconColor: "#ffffff",
+                    }),
+                    title: "Luiten &amp; Fluiten"
+                },
+            )
+                .addTo(layer_group)
+                .bindTooltip("Luiten &amp; Fluiten")
+                
+        
+            L.marker(
+                [-34.1875, 125.125],
+                {
+                    icon: L.AwesomeMarkers.icon({
+                        markerColor: "blue",
+                        icon: "moon",
+                        iconColor: "#ffffff",
+                    }),
+                    title: "Maantempel"
+                },
+            )
+                .addTo(layer_group)
+                .bindTooltip("Maantempel")
+                
+                    .bindPopup(`Deze tempel van Sehanine is gevestigd in een toren die in de lucht zweeft.`)
+                
+        
+            L.marker(
+                [-45.625, 54.875],
+                {
+                    icon: L.AwesomeMarkers.icon({
+                        markerColor: "orange",
+                        icon: "shopping-basket",
+                        iconColor: "#ffffff",
+                    }),
+                    title: "Jaesor’s Opschik"
+                },
+            )
+                .addTo(layer_group)
+                .bindTooltip("Jaesor’s Opschik")
+                
+        
+            L.marker(
+                [-36.125, 59.125],
+                {
+                    icon: L.AwesomeMarkers.icon({
+                        markerColor: "orange",
+                        icon: "shopping-basket",
+                        iconColor: "#ffffff",
+                    }),
+                    title: "Dannar’s Mechaniek"
+                },
+            )
+                .addTo(layer_group)
+                .bindTooltip("Dannar’s Mechaniek")
+                
+        
+            L.marker(
+                [-94.1875, 93.6875],
+                {
+                    icon: L.AwesomeMarkers.icon({
+                        markerColor: "orange",
+                        icon: "hammer",
+                        iconColor: "#ffffff",
+                    }),
+                    title: "Ridder op het Witte Paard"
+                },
+            )
+                .addTo(layer_group)
+                .bindTooltip("Ridder op het Witte Paard")
+                
+                    .bindPopup(`Smidse`)
+                
+        
+            L.marker(
+                [-91.625, 60.0],
+                {
+                    icon: L.AwesomeMarkers.icon({
+                        markerColor: "blue",
+                        icon: "circle",
+                        iconColor: "#ffffff",
+                    }),
+                    title: "Mintarn huurlingen"
+                },
+            )
+                .addTo(layer_group)
+                .bindTooltip("Mintarn huurlingen")
+                
+        
+            L.marker(
+                [-98.89583206176758, 48.29166603088379],
+                {
+                    icon: L.AwesomeMarkers.icon({
+                        markerColor: "blue",
+                        icon: "circle",
+                        iconColor: "#ffffff",
+                    }),
+                    title: "Huis Dagult Neverember"
+                },
+            )
+                .addTo(layer_group)
+                .bindTooltip("Huis Dagult Neverember")
+                
+                    .bindPopup(`Recentelijk berooft door 4 schavuiten`)
+                
+        
+    
+
+    L.easyButton({
+        states: [{
+            stateName: 'show-labels',
+            icon: 'fa-tag',
+            title: 'show labels',
+            onClick: function (btn) {
+                recreate_marker_tooltips({permanent: true});
+                btn.state('hide-labels');
+            }
+        }, {
+            stateName: 'hide-labels',
+            icon: 'fa-tag',
+            title: 'hide labels',
+            onClick: function (btn) {
+                recreate_marker_tooltips({permanent: false});
+                btn.state('show-labels');
+            }
+        }]
+    }).addTo(map);
+
+    L.control.ruler({
+        scale: 0.0078153846153846,
+    }).addTo(map);
+
+    map.on('zoomend', setLayerVisibility);
+
+
+    function recreate_marker_tooltips(options) {
+        const {permanent = false} = options;
+        component_layers.forEach(layer_group => {
+            layer_group.eachLayer(function (marker) {
+                marker.unbindTooltip();
+                marker.bindTooltip(marker.options.title, {permanent: options.permanent});
+            });
+        })
+    }
+
+
+    function setLayerVisibility() {
+        const zoom = map.getZoom();
+        for (let layer of component_layers) {
+            if (zoom < layer.show_at_zoom_level) {
+                map.removeLayer(layer);
+            } else {
+                map.addLayer(layer);
+            }
+        }
+    }
+
+</script>
+
+</body>
+
+</html>
